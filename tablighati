@@ -1,0 +1,407 @@
+#!/bin/bash
+THIS_DIR=$(cd $(dirname $0); pwd)
+cd $THIS_DIR
+red() {
+  printf '\e[1;31m%s\n\e[0;39;49m' "$@"
+}
+green() {
+  printf '\e[1;32m%s\n\e[0;39;49m' "$@"
+}
+white() {
+  printf '\e[1;37m%s\n\e[0;39;49m' "$@"
+}
+prtred() {
+	printf '\e[1;31m%s\n\e[0;39;49m' "$@"
+}
+prtgrn() {
+	printf '\e[1;32m%s\n\e[0;39;49m' "$@"
+}
+prtbrown() {
+	printf '\e[1;33m%s\n\e[0;39;49m' "$@"
+}
+login(){
+red "Enter Your Bot Profile ID:"
+green "ایدی تبلیغاتی خود را وارد کنید:"
+read Profile
+red "Enter Phone Number with pre code of country +
+ex. : +989********"
+green "شماره خودرا با پیش کد کشور وارد کنید
+مثال : +989********"
+read Phone
+./tg -c ~/.telegram-bot/tabi-$Profile/bot.cfg -p tabi-$Profile --login --phone =$Phone
+white "دیتای تبلیغاتی ساخته شد.برای اجرا کردن آن"
+green "./tablighati $Profile"
+white "جهت اجرا به شکل اتولانچ هم از "
+green "./tablighati auto"
+white "استفاده کنید"
+exit
+}
+create() {
+  name=tabi
+  if [[ -e main.lua ]] ; then
+      i=1
+      while [[ -e $name-$i.sh ]] ; do
+          let i++
+      done
+      name=$name-$i
+  fi
+  if [[ "$i" = "4" ]] ; then
+    red "This is the last one tabi"
+green ".این اخرین تبلیغاتی است"
+  elif [[ "$i" = "5" ]] ; then
+    red "You reach maximum number tabi in this server!"
+green "شما به بالاترین حد مجاز تبلیغاتی در این سرور رسیدید."
+exit 1
+  fi
+red "Your Profile ID: $i"
+green "ایدی پروفایل تبلیغاتی شما: $i"
+red "Enter SUDO ID
+ex. : 218722292"
+green "ایدی عددی سودو را وارد کنید
+مثال : 218722292"
+read sudoid
+redis-cli sadd "$i"owner $sudoid
+red "Enter Phone Number with pre code of country +
+ex. : +989********"
+green "شماره خودرا با پیش کد کشور وارد کنید
++مثال : ********98"
+read Phone
+cfg=~/.telegram-bot/tabi-$i/bot.cfg
+if [[ -e ${cfg} ]]; then
+./tg -c ~/.telegram-bot/tabi-$i/bot.cfg -p tabi-$i --login --phone =$Phone
+echo "" > tabi-$i.sh
+exec 4<> tabi-$i.sh
+    echo "while true; do" >&4
+    echo "./tg -p tabi-$i -c ${HOME}/.telegram-bot/tabi-$i/bot.cfg" >&4
+	echo "sleep 2" >&4
+    echo "done" >&4
+	
+exec 3>&-
+chmod 777 tabi-$i.sh
+echo "" > ~/.telegram-bot/tabi-$i/tabi-$i.lua
+exec 5<> ~/.telegram-bot/tabi-$i/tabi-$i.lua
+   echo "tabist = '"$i"'" >&5
+    echo "function stags()" >&5
+    echo "tablighatif = dofile('../tabi/main.lua')" >&5
+	    echo "end" >&5
+    echo "stags()" >&5
+exec 5>&-
+fi
+white "تبلیغاتی شما ساخته شد.برای اجرا کردن آن"
+green "./tablighati $i"
+white "جهت اجرا به شکل اتولانچ هم از "
+green "./tablighati auto"
+white "استفاده کنید"
+exit
+}
+usage() {
+printf "\e[1;36m"
+  cat <<EOF
+راهنمای استفاده از راه انداز تبلیغاتی
+:گزینه ها
+./tablighati create
+ساخت تبلیغاتی جدید
+./tablighati install
+نصب پیش نیاز های تبلیغاتی
+./tablighati login
+ورود به یک تبلیغاتی از قبل ساخته شده
+./tablighati help
+نمایش این متن
+./tablighati clear
+پاک سازی یک تبلیغاتی
+./tablighati clearall
+پاک سازی دیتای کل تبلیغاتی ها
+./tablighati contactus
+نمایش راه های ارتباطی
+./tablighati addsudo
+افزودن یک سودو برای تبلغاتی
+./tablighati auto
+راه اندازی اتولانچ
+./tablighati sudoall
+اضافه کردن یک سودو برای تمام پروفایل ها
+./tablighati config
+تنظیم نشست مخصوص ربات ها
+EOF
+printf "%s\n\e[0;39;49m"
+}
+contactus(){
+ red "Our Contact way:"
+green "Channel: @Stags"
+green "Developer: @ByeCoder - @CaltMan"
+green "Robot: @StagsBot"
+ red "راه های ارتباط باما:"
+green "کانال: @Stags"
+green "توسعه دهنده: @ByeCoder - @CaltMan"
+green "ربات: @StagsBot"
+  exit
+}
+addsudo(){
+ red "Enter Tablighati ID:"
+ green "ایدی تبلیغاتی موردنظر را واردکنید:"
+read TabID
+ red "Enter SUDO ID:"
+ green "ایدی سودوی مورد نظر را وارد کنید:"
+read SudoID
+redis-cli sadd "$TabID"owner $SudoID
+  exit
+}
+clear() {
+  green '
+       شماره تبلیغاتیی که میخواهید آن را حذف کنید وارد کنید
+'
+  read -rp ' ' ID
+  cfg=~/.telegram-bot/tabi-$ID/bot.cfg
+  if [[ -e ${cfg} ]]; then
+mv ~/.telegram-bot/tabi-$ID/bot.cfg ~/.telegram-bot/bot.cfg
+fi
+  rm -rf ~/.telegram-bot/tabi-"$ID"
+  rm -rf tabi-"$ID".lua
+ rm -rf tabi-"$ID".sh
+  rm -rf rm -rf ~/.telegram-bot/tabi-"$ID"
+  mkdir -p ~/.telegram-bot/tabi-"$ID"
+mv ~/.telegram-bot/bot.cfg ~/.telegram-bot/tabi-$ID/bot.cfg 
+  red '
+     تبلیغاتی شماره '$ID' با موفقیت حذف شد
+'
+  exit
+}
+clearall() {
+  green '
+       ایدی سودو را وارد کنید
+'
+ read sudoid
+ mv ~/.telegram-bot/tabi-1/bot.cfg ~/.telegram-bot/bot1.cfg
+mv ~/.telegram-bot/tabi-2/bot.cfg ~/.telegram-bot/bot2.cfg
+mv ~/.telegram-bot/tabi-3/bot.cfg ~/.telegram-bot/bot3.cfg
+mv ~/.telegram-bot/tabi-4/bot.cfg ~/.telegram-bot/bot4.cfg
+
+  rm -rf ~/.telegram-bot
+  rm -rf tabi-1.lua
+ rm -rf tabi-1.sh
+   rm -rf tabi-2.lua
+ rm -rf tabi-2.sh
+   rm -rf tabi-3.lua
+ rm -rf tabi-3.sh
+   rm -rf tabi-4.lua
+ rm -rf tabi-4.sh
+redis-cli flushall
+redis-cli sadd 1owner $sudoid
+redis-cli sadd 2owner $sudoid
+redis-cli sadd 3owner $sudoid
+redis-cli sadd 4owner $sudoid
+ mkdir -p ~/.telegram-bot/tabi-1
+  mkdir -p ~/.telegram-bot/tabi-2
+   mkdir -p ~/.telegram-bot/tabi-3
+    mkdir -p ~/.telegram-bot/tabi-4
+mv ~/.telegram-bot/bot1.cfg ~/.telegram-bot/tabi-1/bot.cfg 
+mv ~/.telegram-bot/bot2.cfg ~/.telegram-bot/tabi-2/bot.cfg 
+mv ~/.telegram-bot/bot3.cfg ~/.telegram-bot/tabi-3/bot.cfg 
+mv ~/.telegram-bot/bot4.cfg ~/.telegram-bot/tabi-4/bot.cfg 
+  red '
+     تمامی دیتا ها پاک شدند و شما میتوانید از نو اقدام به ساختن ربات کنید
+'
+  exit
+}
+sudoall() {
+  green '
+       ایدی سودو را وارد کنید
+'
+ read sudoid
+redis-cli sadd 1owner $sudoid
+redis-cli sadd 2owner $sudoid
+redis-cli sadd 3owner $sudoid
+redis-cli sadd 4owner $sudoid
+  red '
+    ایدی $sudoid در تمامی پروفایل ها سودو شد
+'
+  exit
+}
+autolaunch() {
+while true ; do
+    for tabi in tabi-*.sh ; do
+      tab="${tabi%.*}"
+      ltab="${tab/-/ }"
+screen -S $tab -X quit
+screen -d -m -S $tab ./$tab.sh
+rm -rf ~/.telegram-bot/$tab/files
+rm -rf ~/.telegram-bot/$tab/data/temp 
+rm -rf ~/.telegram-bot/$tab/data/secret_thumbnails 
+rm -rf ~/.telegram-bot/$tab/data/secret 
+rm -rf ~/.telegram-bot/$tab/data/profile_photos 
+rm -rf ~/.telegram-bot/$tab/data/thumbnails 
+rm -rf ~/.telegram-bot/$tab/data/stickers 
+rm -rf ~/.telegram-bot/$tab/data/wallpapers     
+    done
+  echo -e "\e[1;32m written by: @ByeCoer in @Stags Tablighati v3.8 beta\n\e[0;39;49m"
+  sleep 2592000
+done
+	}
+install() {
+prtgrn '
+   *//Do you want to install Essentials of Tablighati? (Y/N):
+ '
+	read -rp ' ' install
+	case "$install" in
+    Y|y|بله)
+ 
+ prtgrn '
+	*//Change Nameservers to Google:
+ '
+	sudo echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
+	chmod +x tg
+	prtgrn '
+ *//Updating old packages:
+ '
+sudo apt-get -y update && sudo apt-get -y upgrade 
+prtgrn '
+ *//Installing Essentials packages:
+ '
+	sudo apt-get --force-yes install git wget screen tmux libconfig++9v5 libconfig9 libevent-dev libjansson4 libstdc++6 lua-socket lua5.2 liblua5.2 make unzip redis-server software-properties-common g++ libconfig++-dev
+	sudo apt-get -y update && sudo apt-get -y upgrade
+ sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test && sudo apt-get -y update && sudo apt-get --force-yes install gcc-4.9 g++-4.9 && sudo update-alternatives —install /usr/bin/gcc gcc /usr/bin/gcc-4.9 60 —slave /usr/bin/g++ g++ /usr/bin/g++-4.9
+prtgrn '
+ *//Updating packages:
+ '
+	sudo apt-get -y update && sudo apt-get -y upgrade && sudo apt-get -y dist-upgrade && sudo apt-get -y autoremove
+	prtgrn '
+ *//Restarting redis service:
+ '
+chmod +x tg
+	sudo service redis-server restart
+	white '
+تبلیغاتی نصب شد.حال برای راه اندازی از دستور 
+./tablighati create
+استفاده کنید'
+green '
+برای دریافت لیست لانچر دستور
+./tablighati help
+راارسال کنید'
+ ;;
+    N|n|خیر)
+		prtbrown '
+        لغو عملیات
+ Canceling the operation
+ '
+    ;;
+    *)
+		prtred '
+    دستور اشتباه
+  Wrong command
+ '
+		install
+    ;;
+esac
+}
+auto() {
+	killall screen
+screen ./tablighati autolaunch
+}
+config() {
+red "Enter Session API_ID:[ex: 12345]"
+ green "لطفا ای پی ای ایدی نشست را وارد کنید:"
+read api_ids
+red "Enter Session API_HASH:[ex: 977df810b6ac3947ebf2bc7e635f937c]"
+ green "لطفا ای پی ای  هش نشست را وارد کنید:"
+read api_hashs
+red "Enter Session language_code:[ex: de]"
+ green "لطفا کد زبان نشست را وارد کنید:"
+read lcs
+red "Enter Session device model:[ex: samsungSM-G9350]"
+ green "لطفا مدل دستگاه نشست را وارد کنید:"
+read dms
+red "Enter Session system version:[ex: SDK22]"
+ green "لطفا ورژن دستگاه نشست را وارد کنید:"
+read svs
+for i in {1..4} ;do
+mkdir -p ~/.telegram-bot/tabi-"$i"
+cfg=~/.telegram-bot/tabi-$i/bot.cfg
+if [[ -e ${cfg} ]]; then
+rm -rf ~/.telegram-bot/tabi-$i/bot.cfg
+fi
+echo "default_profile = \"tabi-$i\";
+tabi-$i = {
+	config_directory = \"tabi-$i\";
+	test = false;
+	use_file_db = true;
+	use_file_gc = false;
+	file_readable_names = true;
+	use_secret_chats = false;
+	use_chat_info_db = true;
+	use_message_db = true;
+	verbosity = 0;
+	lua_script = \"tabi-$i.lua\";
+	api_id = $api_ids;
+	api_hash = \"$api_hashs\";
+	language_code = \"$lcs\";
+	device_model = \"$dms\";
+	system_version = \"$svs\";
+
+};" >> ${cfg}
+sed -i -e 's/\r//g' ~/.telegram-bot/tabi-$i/bot.cfg
+done
+echo "Configued successfully!"
+}
+
+case $1 in
+  config)
+    config
+  ;;
+  create)
+    create
+  ;;
+  install)
+    install
+  ;;
+  contactus)
+    contactus
+  ;;
+  update)
+    update
+	 ;;
+	   addsudo)
+    addsudo
+	 ;;
+    clear)
+    clear
+		 ;;
+    clearall)
+    clearall
+  ;;
+  login)
+    login
+  ;;
+  sudoall)
+    sudoall
+  ;;
+  autolaunch)
+    autolaunch
+  ;;
+    auto)
+    auto
+  ;;
+  help)
+    usage
+  ;;
+  a*)
+    id="${1/a/}"
+    if [ -a "$THIS_DIR"/tabi-"$id".sh ]; then
+      screen -x -s tabi-"$id" quit
+      while true ; do
+        screen -s tabi-"$id" ./tabi-"$id".sh
+        sleep 2
+      done
+    else
+      usage
+    fi
+  ;;
+  clr)
+    clear
+  ;;
+  *)
+    if [ -a "$THIS_DIR"/tabi-"$1".sh ]; then
+      ./tabi-"$1".sh
+    else
+    usage
+    fi
+  ;;
+esac
