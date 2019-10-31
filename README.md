@@ -1,12 +1,12 @@
-# **Amir** #
+# **سورس تبچی** #
 
 <div align="New Tabchi"><a href="https://t.me/Telesud"><img src="http://s6.picofile.com/file/8376839976/IMG_20190925_222746_317.jpg" width="300"></a></div>
 
-### 🤠by: [Amir](https://t.me/amir_sezar)
+### 🤠by: [امیر](https://t.me/amir_sezar)
 
-# بدون دیلیت 😜
+# تبچی بدون دیلیت 😜
 ---------------------------------
-#Install :
+#کلون و نصب:
 ```
 git clone https://github.com/Telesud/TelesudTab
 cd tabi
@@ -15,7 +15,7 @@ chmod +x tg
 ./tablighati install
 ```
 
-#Config :
+#پیکربندی در هر یوزر فقط یکبار این دستورات رو بزنید:
 ```
 ./tablighati config
 
@@ -29,16 +29,16 @@ Asus Nexus 7 (2019)
 
 Android 7.1 N MR1 (25)
 ```
-
+-------------------
 ###
 
-#Bot1 Create:
+#برای ساخت ربات اول و به بعد این دستورات رو به پایین بزنید👇:
 ```
 ./tablighati create
 
 ./tablighati 1
 ```
-#اتو لانچ
+#روشن کردن همه ربات ها:
 #Auto lunch bot all :
 ```
 cd tabi
