@@ -12,7 +12,6 @@
 git clone https://github.com/isDev-ir/tabi
 cd tabi
 chmod +x tablighati
-chmod +x tg
 ./tablighati install
 ```
 -------------------
@@ -27,6 +26,10 @@ unzip tg.zip
 سپس
 ```
 rm -rf tg.zip
+```
+و این دستور
+```
+chmod +x tg
 ```
 -------------------
 👇اگر بار اول است این سورس رو در یوزر خود نصب میکنید این دستور رو بزنید
